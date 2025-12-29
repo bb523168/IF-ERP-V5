@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { getLegalDraft } from '../services/geminiService';
-import { UserRole } from '../types';
+import { getLegalDraft } from '../services/geminiService.ts';
+import { UserRole } from '../types.ts';
 
 interface LegalCenterProps {
   role: UserRole;

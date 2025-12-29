@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { NATURE_CODES, STUDIO_CODES, PRODUCT_TYPES } from '../constants';
+import { NATURE_CODES, STUDIO_CODES, PRODUCT_TYPES } from '../constants.tsx';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('general');

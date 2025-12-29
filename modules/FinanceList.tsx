@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { getAccountingSuggestion } from '../services/geminiService';
-import { UserRole } from '../types';
+import { getAccountingSuggestion } from '../services/geminiService.ts';
+import { UserRole } from '../types.ts';
 
 interface FinanceListProps {
   role: UserRole;

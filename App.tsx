@@ -1,17 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { UserRole } from './types';
-import Sidebar from './components/Sidebar';
-import Header from './components/Header';
-import Dashboard from './modules/Dashboard';
-import ProjectList from './modules/ProjectList';
-import FinanceList from './modules/FinanceList';
-import CRMList from './modules/CRMList';
-import QuotationList from './modules/QuotationList';
-import Settings from './modules/Settings';
-import LegalCenter from './modules/LegalCenter';
-import HRAdmin from './modules/HRAdmin';
-import Approvals from './modules/Approvals';
+import React, { useState } from 'react';
+import { UserRole } from './types.ts';
+import Sidebar from './components/Sidebar.tsx';
+import Header from './components/Header.tsx';
+import Dashboard from './modules/Dashboard.tsx';
+import ProjectList from './modules/ProjectList.tsx';
+import FinanceList from './modules/FinanceList.tsx';
+import CRMList from './modules/CRMList.tsx';
+import QuotationList from './modules/QuotationList.tsx';
+import Settings from './modules/Settings.tsx';
+import LegalCenter from './modules/LegalCenter.tsx';
+import HRAdmin from './modules/HRAdmin.tsx';
+import Approvals from './modules/Approvals.tsx';
 
 const App: React.FC = () => {
   const [currentModule, setCurrentModule] = useState('dashboard');

@@ -1,5 +1,5 @@
 
-import { NATURE_CODES } from '../constants';
+import { NATURE_CODES } from '../constants.tsx';
 
 export const generateProjectCode = (
   year: number,

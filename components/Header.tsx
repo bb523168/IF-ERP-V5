@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserRole } from '../types';
+import { UserRole } from '../types.ts';
 
 interface HeaderProps {
   user: { name: string; role: UserRole };

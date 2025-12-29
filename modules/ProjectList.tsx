@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Project, ProjectStatus, UserRole } from '../types';
-import { NATURE_CODES, STUDIO_CODES, PRODUCT_TYPES, STATUS_PROGRESS } from '../constants';
-import { generateProjectCode } from '../utils/codeGenerator';
+import { Project, ProjectStatus, UserRole } from '../types.ts';
+import { NATURE_CODES, STUDIO_CODES, PRODUCT_TYPES, STATUS_PROGRESS } from '../constants.tsx';
+import { generateProjectCode } from '../utils/codeGenerator.ts';
 
 interface ProjectListProps {
   role: UserRole;
@@ -13,6 +13,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterYear, setFilterYear] = useState(new Date().getFullYear());
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -65,34 +66,80 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
     setProjects(mockProjects);
   }, []);
 
-  const handleAddProject = () => {
-    const yearProjects = projects.filter(p => p.year === formData.year);
-    const nextSerial = yearProjects.length + 1;
-    const code = generateProjectCode(formData.year, formData.studioCode, formData.natures, nextSerial);
+  const handleSaveProject = () => {
+    if (editingId) {
+      // Edit mode
+      setProjects(projects.map(p => {
+        if (p.id === editingId) {
+          // Re-generate code if year, studio, or natures changed
+          const code = generateProjectCode(formData.year, formData.studioCode, formData.natures, p.serial);
+          return {
+            ...p,
+            projectCode: code,
+            name: formData.name,
+            client: formData.client,
+            caseName: formData.caseName,
+            location: formData.location,
+            productType: formData.productType,
+            natures: formData.natures,
+            studioCode: formData.studioCode,
+            year: formData.year,
+          };
+        }
+        return p;
+      }));
+    } else {
+      // Add mode
+      const yearProjects = projects.filter(p => p.year === formData.year);
+      const nextSerial = yearProjects.length + 1;
+      const code = generateProjectCode(formData.year, formData.studioCode, formData.natures, nextSerial);
+      
+      const newProject: Project = {
+        id: Date.now().toString(),
+        projectCode: code,
+        name: formData.name,
+        client: formData.client,
+        caseName: formData.caseName,
+        location: formData.location,
+        productType: formData.productType,
+        natures: formData.natures,
+        studioCode: formData.studioCode,
+        year: formData.year,
+        serial: nextSerial,
+        status: ProjectStatus.QUOTING,
+        progress: 5,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      setProjects([newProject, ...projects]);
+    }
     
-    const newProject: Project = {
-      id: Date.now().toString(),
-      projectCode: code,
-      name: formData.name,
-      client: formData.client,
-      caseName: formData.caseName,
-      location: formData.location,
-      productType: formData.productType,
-      natures: formData.natures,
-      studioCode: formData.studioCode,
-      year: formData.year,
-      serial: nextSerial,
-      status: ProjectStatus.QUOTING,
-      progress: 5,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    setProjects([newProject, ...projects]);
     setIsModalOpen(false);
     resetForm();
   };
 
+  const handleEdit = (project: Project) => {
+    setEditingId(project.id);
+    setFormData({
+      name: project.name,
+      client: project.client,
+      caseName: project.caseName || '',
+      location: project.location,
+      productType: project.productType,
+      natures: project.natures,
+      studioCode: project.studioCode,
+      year: project.year,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('確定要刪除此專案嗎？此操作無法還原。')) {
+      setProjects(projects.filter(p => p.id !== id));
+    }
+  };
+
   const resetForm = () => {
+    setEditingId(null);
     setFormData({
       name: '',
       client: '',
@@ -144,7 +191,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
         </div>
         {role !== UserRole.VIEWER && (
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => { resetForm(); setIsModalOpen(true); }}
             className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md shadow-amber-500/20 transition-all flex items-center gap-2"
           >
             <i className="fas fa-plus"></i> 新增專案
@@ -228,8 +275,24 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-slate-400 hover:text-amber-500 p-2"><i className="fas fa-edit"></i></button>
-                    <button className="text-slate-400 hover:text-red-500 p-2"><i className="fas fa-trash-alt"></i></button>
+                    {role !== UserRole.VIEWER && (
+                      <>
+                        <button 
+                          onClick={() => handleEdit(project)}
+                          className="text-slate-400 hover:text-amber-500 p-2"
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        {(role === UserRole.ADMIN) && (
+                          <button 
+                            onClick={() => handleDelete(project.id)}
+                            className="text-slate-400 hover:text-red-500 p-2"
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </button>
+                        )}
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -245,12 +308,12 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
         </div>
       </div>
 
-      {/* Add Project Modal */}
+      {/* Project Modal (Add/Edit) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b flex justify-between items-center bg-slate-900 text-white">
-              <h2 className="text-xl font-bold">新建專案項目</h2>
+              <h2 className="text-xl font-bold">{editingId ? '編輯專案資料' : '新建專案項目'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white"><i className="fas fa-times text-lg"></i></button>
             </div>
             
@@ -334,7 +397,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">系統自動預覽編號</p>
                   <p className="text-xl font-black text-slate-900 font-mono">
-                    {generateProjectCode(formData.year, formData.studioCode, formData.natures, projects.filter(p => p.year === formData.year).length + 1)}
+                    {generateProjectCode(formData.year, formData.studioCode, formData.natures, editingId ? (projects.find(p => p.id === editingId)?.serial || 0) : projects.filter(p => p.year === formData.year).length + 1)}
                   </p>
                 </div>
                 <div className="text-right">
@@ -351,11 +414,11 @@ const ProjectList: React.FC<ProjectListProps> = ({ role }) => {
                 取消
               </button>
               <button 
-                onClick={handleAddProject}
+                onClick={handleSaveProject}
                 disabled={!formData.name || formData.natures.length === 0}
                 className="px-8 py-2.5 rounded-lg text-sm font-bold bg-slate-900 text-white hover:bg-black disabled:bg-slate-300 disabled:cursor-not-allowed transition-all"
               >
-                確認新增
+                {editingId ? '確認儲存' : '確認新增'}
               </button>
             </div>
           </div>
