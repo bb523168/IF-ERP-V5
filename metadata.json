@@ -1,0 +1,8 @@
+{
+  "name": "如果建築師事務所 ERP 系統",
+  "description": "建築師事務所專用的全功能 ERP 系統，整合專案管理、自動編碼、財會、線上簽核與 AI 輔助功能。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
